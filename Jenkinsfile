@@ -1,5 +1,5 @@
-pipeline {
-	agent { label 'oh-node' }
+pipeline {	   
+	   agent { label 'oh-node' } 
 
 	   options { 
 	   	disableConcurrentBuilds() 
@@ -8,90 +8,50 @@ pipeline {
 
 	   environment {           
           path_to_appsetting = 'bankLambdaAPI'
-          service_GitURL = 'https://github.com/TrainingAwsBasicEngineer/TrainingPrivate.git'
     	}
 
+	   
 	   stages {
-
-
-	   	  
-		   	  // stage('Checkout'){
-
-		   	  // 	steps {
-			   	 //  	checkout([
-			     //                            $class: 'GitSCM', 
-			     //                            branches: [[name: "*/${env.GIT_BRANCH}"]], 
-			     //                            doGenerateSubmoduleConfigurations: false, 
-			     //                            extensions: [[$class: 'CleanCheckout']], 
-			     //                            submoduleCfg: [], 
-			     //                            userRemoteConfigs: [[credentialsId: '79d29408-11a6-48cf-a8d3-cdcbca9a0b01', 
-			     //                                                 url: "${service_GitURL}"]]
-			     //                        ])
-		   	  // 	}
-	   	  	// 	}
-
-
-			
-		  stage('Prod Protection') {
-		  	when {
-                branch '*PROD*'                
-            }
-            options {
-			      timeout(time: 100, unit: 'SECONDS') 
-			  }
-	         steps {
-	         	script {
-	         			awsProfile = "GFProd"				         	
-
-		         		def userInput = input(
-		                 id: 'userInput', message: 'Enter prod password', 
-		                 parameters:[ 
-		                 [$class: 'TextParameterDefinition', defaultValue: 'None', description: 'Input your password', name: 'Password']		                 
-		                ])
-		                echo ("Password: "+userInput['Password'])		
-
-
-		                if(userInput['Password'] != "1234"){
-		                	error "stop"
-		                }
-		                	                			               
-		            }		              
-	            }
-
-	         	
-         }
-
-
-	       	       	      
-	      
-	      stage('Build') {
-	         steps {	  
-	         	sh "echo ${env}"          
-	            sh "ls -al"
-	            sh "dotnet build"	            
-	            // sh "dotnet publish"	            
+	      stage('Initialize SourceControl') {
+	         steps {  	     
+	         		bat('set')	         		
+	                bat "echo The current directory is %CD%"
+	                bat "dir"	                
 	         }
-	      }  
+	      }	 
 
-	      stage('Test'){
-	      	steps{
-	      		sh "dotnet test"
-	      	}
-	      }
+	      stage('Test') {
+	         steps {  	
+	         	bat "dotnet test"     
+	         }
+	     }
 
-	      stage('Deploy'){
-	      	steps{
-	      		dir("${path_to_appsetting}"){
-		      		sh """
-		      			export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
-						dotnet lambda deploy-function
-		      		"""
-	      		}
-	      	}
-	      }
-	     
+	      stage('Build') {
+	         steps {  	
+	         	bat "dotnet publish -o out"     
+	         }
+	     }
 
-	   }
+	     stage('Change IIS Path') {
+	         steps {  	
+	         	bat """ 
+	         		IF NOT EXIST "C:\\Data\\Test\\Test-%BUILD_NUMBER%" (
+							mkdir "C:\\Data\\Test\\Test-%BUILD_NUMBER%" 
+						) 
+	         	"""
+
+	         	bat """ 
+	         		"C:\\Program Files (x86)\\IIS\\Microsoft Web Deploy V3\\msdeploy.exe" -verb:sync  -source:IisApp="%CD%\\out" -dest:iisapp="C:\\Data\\Test\\Test-%BUILD_NUMBER%"
+	         	"""
+
+	         	bat """ 
+	         		C:\\Windows\\System32\\inetsrv\\appcmd set vdir "Default Web Site/test/" -physicalPath:"C:\\Data\\Test\\Test-%BUILD_NUMBER%"
+	         	"""
+	        
+	         }
+	     }
+
+	 }
 
 
 	   post{
