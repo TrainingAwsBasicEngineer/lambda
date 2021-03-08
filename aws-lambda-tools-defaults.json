@@ -1,0 +1,12 @@
+﻿{
+  "region": "ap-southeast-1",
+  "profile": "oh",
+  "configuration": "Release",
+  "framework": "netcoreapp3.1",
+  "function-name": "oh-lambda-dotnet",
+  "function-runtime": "dotnetcore3.1",
+  "function-handler": "WebApplication1::WebApplication1.LambdaEntryPoint::FunctionHandlerAsync",
+
+  "aws-access-key-id": "AKIA4AYH52MIBEPN45WT",
+  "aws-secret-key": "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"
+}
