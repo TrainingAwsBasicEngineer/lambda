@@ -45,7 +45,7 @@ pipeline {
 	         	"""
 
 	         	bat """ 
-	         		C:\\Windows\\System32\\inetsrv\\appcmd set vdir "Default Web Site/WebApplication1/" -physicalPath:"C:\\Data\\Test\\Test-%BUILD_NUMBER%"
+	         		C:\\Windows\\System32\\inetsrv\\appcmd set vdir "Default Web Site/WebApplication/" -physicalPath:"C:\\Data\\Test\\Test-%BUILD_NUMBER%"
 	         	"""
 	        
 	         }
